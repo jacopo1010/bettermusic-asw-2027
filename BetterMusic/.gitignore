@@ -1,0 +1,51 @@
+### Gradle ###
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+### Eclipse / STS ###
+# cartella di output usata da Eclipse (Buildship) per compilare
+bin/
+.project
+.classpath
+.settings/
+.factorypath
+.apt_generated/
+.apt_generated_tests/
+.springBeans
+.sts4-cache/
+.metadata/
+.recommenders/
+.loadpath
+
+### IntelliJ IDEA ###
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+### VS Code ###
+.vscode/
+
+### NetBeans ###
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+### Maven (nel caso decideste di convertire) ###
+target/
+
+### Log e file temporanei ###
+*.log
+logs/
+*.tmp
+*.swp
+*~
+
+### Sistema operativo ###
+.DS_Store
+Thumbs.db
+desktop.ini
