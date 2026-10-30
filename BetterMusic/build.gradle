@@ -1,10 +1,10 @@
 buildscript {
   ext {
-    springBootVersion = '3.5.6'
+    springBootVersion = '3.5.16'
     springDependencyManagementVersion = '1.1.7'
-    springCloudVersion = '2025.0.0'
-    lombokVersion = '1.18.42'
-    springdocOpenApiVersion = '2.8.13'
+    springCloudVersion = '2025.0.3'
+    lombokVersion = '1.18.46'
+    springdocOpenApiVersion = '2.8.17'
   }
   repositories {
     mavenCentral()
