@@ -1,4 +1,4 @@
-package asw.bettermusic.recensioniseguite.connessioni;
+package asw.bettermusic.recensioniseguite.connessioniclient;
 
 import asw.bettermusic.recensioniseguite.domain.*; 
 

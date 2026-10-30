@@ -1,4 +1,4 @@
-package asw.bettermusic.recensioniseguite.enigmi;
+package asw.bettermusic.recensioniseguite.recensioniclient;
 
 import asw.bettermusic.recensioniseguite.domain.*; 
 

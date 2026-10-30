@@ -27,7 +27,7 @@ public class Album implements Comparable<Album> {
 	private Set<String> generi; 
 
 	public Album(String titolo, String artista, Set<String> generi) {
-		this(); 
+		this();
 		this.titolo = titolo; 
 		this.artista = artista; 
 		this.generi = generi; 

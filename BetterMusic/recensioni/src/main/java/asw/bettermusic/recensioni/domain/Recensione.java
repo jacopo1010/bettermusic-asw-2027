@@ -25,7 +25,7 @@ public class Recensione implements Comparable<Recensione> {
 	private String sunto; 
 
 	public Recensione(String recensore, Long idAlbum, String testo, String sunto) {
-		this(); 
+		this();
 		this.recensore = recensore; 
 		this.idAlbum = idAlbum; 
 		this.testo = testo; 

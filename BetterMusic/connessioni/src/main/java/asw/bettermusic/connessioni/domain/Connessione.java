@@ -22,7 +22,7 @@ public class Connessione {
 	private String ruolo; 
 	
 	public Connessione(String utente, String seguito, String ruolo) {
-		this(); 
+		this();
 		this.utente = utente; 
 		this.seguito = seguito; 
 		this.ruolo = ruolo; 
