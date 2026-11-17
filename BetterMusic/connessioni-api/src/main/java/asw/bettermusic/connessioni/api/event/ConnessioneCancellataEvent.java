@@ -5,9 +5,9 @@ import lombok.*;
 @Data @NoArgsConstructor @AllArgsConstructor
 public class ConnessioneCancellataEvent implements ConnessioniDomainEvent{
 	
-	private String utente; 
+	private Long id; 
+	private String utente;
 	private String seguito; 
 	private String ruolo; 
-
 
 }

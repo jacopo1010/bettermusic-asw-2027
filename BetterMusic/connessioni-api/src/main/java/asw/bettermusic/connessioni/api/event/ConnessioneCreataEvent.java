@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data @NoArgsConstructor @AllArgsConstructor
-public class ConnessioneCreataEvent {
+public class ConnessioneCreataEvent implements ConnessioniDomainEvent {
 	
 	private Long id; 
 	private String utente;
