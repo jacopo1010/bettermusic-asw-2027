@@ -18,7 +18,11 @@ spring:
         queryPassing: true 
     loadbalancer: 
       ribbon.enabled: false 
-
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 server: 
   port: ${PORT:${SERVER_PORT:0}}
 #  port: 8080

@@ -1,5 +1,10 @@
 package asw.bettermusic.recensioni.producerevent;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data @NoArgsConstructor @AllArgsConstructor
 public class RecensioneCreataEvent implements RecensioniDomainEvent {
 	
 	private Long id; 
