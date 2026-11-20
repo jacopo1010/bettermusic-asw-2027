@@ -23,6 +23,13 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: recensioni
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: asw.bettermusic.*
 server: 
   port: ${PORT:${SERVER_PORT:0}}
 #  port: 8080
@@ -33,3 +40,9 @@ server:
 #spring.jpa.show-sql: true
 # disable OSIV
 spring.jpa.open-in-view: false
+
+# ASW 
+asw: 
+  recensioniservice: 
+    implementation: RecensioniServiceRestBasedImpl
+    # implementation: RecensioniServiceKafkaBasedImpl

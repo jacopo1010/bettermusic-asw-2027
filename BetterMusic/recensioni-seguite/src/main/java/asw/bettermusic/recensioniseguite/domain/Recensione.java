@@ -1,14 +1,18 @@
 package asw.bettermusic.recensioniseguite.domain;
 
+import jakarta.persistence.*;
+
 import lombok.*; 
 
-/* Recensione di un album scritta da un recensore. 
+/* Replica locale di una recensione (in formato breve), aggiornata dagli eventi del servizio recensioni. 
  * Una recensione nel dominio delle recensioni-seguite 
  * corrisponde in effetti ad una recensione "breve" nel dominio delle recensioni. */ 
+@Entity
 @Data @NoArgsConstructor @AllArgsConstructor
 public class Recensione implements Comparable<Recensione> {
 
-	/* id della recensione */
+	/* id della recensione (assegnato dal servizio recensioni) */
+	@Id
 	@EqualsAndHashCode.Include
 	private Long id; 
 	/* chi ha scritto la recensione */ 

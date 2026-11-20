@@ -65,9 +65,11 @@ MODE=${1:-rest}
 case "$MODE" in
     rest)
         IMPL=RecensioniSeguiteServiceRestBasedImpl
+        IMPL_RECENSIONI=RecensioniServiceRestBasedImpl
         ;;
     kafka)
         IMPL=RecensioniSeguiteServiceKafkaBasedImpl
+        IMPL_RECENSIONI=RecensioniServiceKafkaBasedImpl
         ;;
     *)
         echo "Uso: $0 [rest|kafka]"
@@ -75,7 +77,7 @@ case "$MODE" in
         ;;
 esac
 
-echo "--- Test minimale in modalità $MODE ($IMPL) ---"
+echo "--- Test minimale in modalità $MODE (recensioni-seguite: $IMPL, recensioni: $IMPL_RECENSIONI) ---"
 
 echo "Arresto dell'applicazione..."
 ./stop-bettermusic.sh > /dev/null 2>&1
@@ -84,7 +86,7 @@ echo "Riavvio di Kafka (topic vuoti)..."
 riavvia_kafka
 
 echo "Avvio dell'applicazione..."
-ASW_RECENSIONISEGUITESERVICE_IMPLEMENTATION=$IMPL ./start-bettermusic.sh > app.log 2>&1
+ASW_RECENSIONISEGUITESERVICE_IMPLEMENTATION=$IMPL ASW_RECENSIONISERVICE_IMPLEMENTATION=$IMPL_RECENSIONI ./start-bettermusic.sh > app.log 2>&1
 
 echo "Attesa dell'avvio dei servizi..."
 attendi_avvio_servizio album/album

@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.*; 
 import java.util.stream.*; 
@@ -26,6 +27,7 @@ import java.util.logging.Logger;
 public class RecensioniController {
 
 	@Autowired 
+	@Qualifier("${asw.recensioniservice.implementation}")
 	private RecensioniService recensioniService; 
 
     private final Logger logger = Logger.getLogger(this.getClass().toString());
