@@ -57,7 +57,7 @@ riavvia_kafka() {
 }
 
 KAFKA_COMPOSE=kafka/docker/docker-compose.yml
-ATTESA_PROPAGAZIONE_EVENTI=3 # secondi
+ATTESA_PROPAGAZIONE_EVENTI=5 # secondi
 
 # Avvio del test nella modalità scelta
 MODE=${1:-rest}
@@ -65,9 +65,11 @@ MODE=${1:-rest}
 case "$MODE" in
     rest)
         IMPL=RecensioniSeguiteServiceRestBasedImpl
+        IMPL_RECENSIONI=RecensioniServiceRestBasedImpl
         ;;
     kafka)
         IMPL=RecensioniSeguiteServiceKafkaBasedImpl
+        IMPL_RECENSIONI=RecensioniServiceKafkaBasedImpl
         ;;
     *)
         echo "Uso: $0 [rest|kafka]"
@@ -75,7 +77,7 @@ case "$MODE" in
         ;;
 esac
 
-echo "--- Test minimale in modalità $MODE ($IMPL) ---"
+echo "--- Test minimale in modalità $MODE (recensioni-seguite: $IMPL, recensioni: $IMPL_RECENSIONI) ---"
 
 echo "Arresto dell'applicazione..."
 ./stop-bettermusic.sh > /dev/null 2>&1
@@ -84,7 +86,7 @@ echo "Riavvio di Kafka (topic vuoti)..."
 riavvia_kafka
 
 echo "Avvio dell'applicazione..."
-ASW_RECENSIONISEGUITESERVICE_IMPLEMENTATION=$IMPL ./start-bettermusic.sh > app.log 2>&1
+ASW_RECENSIONISEGUITESERVICE_IMPLEMENTATION=$IMPL ASW_RECENSIONISERVICE_IMPLEMENTATION=$IMPL_RECENSIONI ./start-bettermusic.sh > app.log 2>&1
 
 echo "Attesa dell'avvio dei servizi..."
 attendi_avvio_servizio album/album
@@ -92,8 +94,18 @@ attendi_avvio_servizio recensioni/recensioni
 attendi_avvio_servizio connessioni/connessioni
 attendi_avvio_servizio recensioni-seguite/recensioniseguite/Alice # utente a caso sennò non funziona
 
-# Inizializzazione db
-./do-init-bettermusic-db.sh > /dev/null 2>&1
+# in modalità kafka, attende che i consumer si uniscano ai gruppi prima di inizializzare i dati
+if [ "$MODE" = "kafka" ]; then
+    echo "Attesa che i consumer Kafka si uniscano ai gruppi..."
+    sleep 15
+fi
+
+# Inizializzazione db (in kafka mode attende la propagazione degli eventi tra album, recensioni e connessioni)
+./do-init-albums.sh > /dev/null 2>&1
+if [ "$MODE" = "kafka" ]; then sleep $ATTESA_PROPAGAZIONE_EVENTI; fi
+./do-init-recensioni.sh > /dev/null 2>&1
+if [ "$MODE" = "kafka" ]; then sleep $ATTESA_PROPAGAZIONE_EVENTI; fi
+./do-init-connessioni.sh > /dev/null 2>&1
 verifica "dopo init" 5 6 5
 
 # Update albums

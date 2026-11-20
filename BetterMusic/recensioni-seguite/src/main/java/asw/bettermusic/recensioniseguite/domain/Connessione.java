@@ -1,12 +1,16 @@
 package asw.bettermusic.recensioniseguite.domain;
 
+import jakarta.persistence.*;
+
 import lombok.*; 
 
-/* Connessione tra un utente e un seguito (con un ruolo). */  
+/* Replica locale di una connessione (aggiornata dagli eventi del servizio connessioni). */  
+@Entity
 @Data @NoArgsConstructor @AllArgsConstructor
 public class Connessione {
 
-	/* id della connessione */ 
+	/* id della connessione (assegnato dal servizio connessioni) */ 
+	@Id
 	private Long id; 
 	/* utente che segue */ 
 	private String utente; 
