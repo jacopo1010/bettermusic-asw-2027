@@ -1,4 +1,4 @@
-package asw.bettermusic.recensioni.producerevent;
+package asw.bettermusic.recensioni.api.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

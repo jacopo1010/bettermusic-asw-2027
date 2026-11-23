@@ -1,6 +1,6 @@
 package asw.bettermusic.recensioni.domain;
 
-import asw.bettermusic.recensioni.producerevent.RecensioniDomainEvent;
+import asw.bettermusic.recensioni.api.event.RecensioniDomainEvent;
 
 public interface RecensioniEventPublisher {
 

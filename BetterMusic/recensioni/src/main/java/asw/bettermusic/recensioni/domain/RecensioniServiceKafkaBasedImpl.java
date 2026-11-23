@@ -2,8 +2,8 @@ package asw.bettermusic.recensioni.domain;
 
 import org.springframework.stereotype.Service;
 
-import asw.bettermusic.recensioni.producerevent.RecensioneCreataEvent;
-import asw.bettermusic.recensioni.producerevent.RecensioniDomainEvent;
+import asw.bettermusic.recensioni.api.event.RecensioneCreataEvent;
+import asw.bettermusic.recensioni.api.event.RecensioniDomainEvent;
 
 import org.springframework.beans.factory.annotation.Autowired;
 

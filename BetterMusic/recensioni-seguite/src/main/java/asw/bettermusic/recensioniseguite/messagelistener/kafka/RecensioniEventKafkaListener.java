@@ -1,7 +1,7 @@
 package asw.bettermusic.recensioniseguite.messagelistener.kafka;
 
-import asw.bettermusic.recensioni.producerevent.RecensioneCreataEvent;
-import asw.bettermusic.recensioni.producerevent.RecensioniDomainEvent;
+import asw.bettermusic.recensioni.api.event.RecensioneCreataEvent;
+import asw.bettermusic.recensioni.api.event.RecensioniDomainEvent;
 import asw.bettermusic.recensioniseguite.domain.ReplicheService;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;

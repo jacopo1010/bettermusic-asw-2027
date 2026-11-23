@@ -3,7 +3,7 @@ package asw.bettermusic.recensioniseguite.domain;
 import asw.bettermusic.album.api.event.AlbumCreatoEvent;
 import asw.bettermusic.connessioni.api.event.ConnessioneCancellataEvent;
 import asw.bettermusic.connessioni.api.event.ConnessioneCreataEvent;
-import asw.bettermusic.recensioni.producerevent.RecensioneCreataEvent;
+import asw.bettermusic.recensioni.api.event.RecensioneCreataEvent;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

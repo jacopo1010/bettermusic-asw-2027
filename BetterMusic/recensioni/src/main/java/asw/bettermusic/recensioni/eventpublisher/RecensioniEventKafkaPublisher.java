@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import asw.bettermusic.recensioni.api.event.RecensioniDomainEvent;
 import asw.bettermusic.recensioni.domain.RecensioniEventPublisher;
-import asw.bettermusic.recensioni.producerevent.RecensioniDomainEvent;
 
 @Component
 public class RecensioniEventKafkaPublisher implements RecensioniEventPublisher{
