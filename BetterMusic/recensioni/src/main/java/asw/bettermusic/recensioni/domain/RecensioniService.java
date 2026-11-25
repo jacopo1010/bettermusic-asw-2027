@@ -22,4 +22,7 @@ public interface RecensioniService {
 	/* Trova tutte le recensioni scritte da un recensore. */ 
 	Collection<Recensione> getRecensioniByRecensore(String recensore); 
 
+	/* Cancella una recensione, dato l'id */
+	Recensione deleteRecensione(Long id);
+
 }
