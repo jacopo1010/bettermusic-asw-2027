@@ -72,5 +72,65 @@ necessari per la modalità Kafka.
   `ASW_RECENSIONISERVICE_IMPLEMENTATION=RecensioniServiceKafkaBasedImpl`. Ora `run-test-minimale.sh` le imposta tutte e due (vedi A9).
 - **Line endings**: nella clone WSL e Windows gli `.sh` erano in CRLF (per `core.autocrlf=true` di Git for Windows);
   sistemato **in locale** (`core.autocrlf false` + re-checkout), senza commit nel repo condiviso.
-- **Test end-to-end non ancora eseguito** (richiede Consul + Kafka + i servizi avviati): da lanciare con
-  `./run-test-minimale.sh rest` e `./run-test-minimale.sh kafka`, attendendosi i conteggi 5/6/5 → 5/6/5 → 6/8/7 → 7/5/8.
+- **Test end-to-end: eseguito il 25/11/2026** (vedi sezione successiva). `./run-test-minimale.sh rest` e `kafka` danno
+  entrambi 5/6/5 → 5/6/5 → 6/8/7 → 7/5/8.
+
+---
+
+## Sessione del 25/11/2026: correzioni Kafka (Attività 1) e cancellazione recensioni (Attività 2)
+
+Commit: da `4d394b3` a `48598fa` (merge della PR #4 `implementazione-delete-recensioni`), autrice Sara.
+
+### Correzioni alla versione Kafka
+
+| # | Cosa / Dove | Problema (sintomo → causa) | Soluzione | Commit |
+| --- | --- | --- | --- | --- |
+| B1 | `recensioni{, -seguite}/src/main/resources/application.yml` | **Loop infinito del consumer** (log di circa 1 GB in 20 s). Dopo la rinomina del package eventi (`recensioni.producerevent` → `recensioni.api.event`) su Kafka erano rimasti eventi con `__TypeId__` della classe vecchia: il `JsonDeserializer` falliva e rileggeva sempre lo stesso messaggio (*poison pill*) | `value-deserializer: ErrorHandlingDeserializer` con `spring.deserializer.value.delegate.class: JsonDeserializer`: il messaggio illeggibile viene registrato nel log una sola volta e saltato | `4d394b3` |
+| B2 | stessi `application.yml` | **Replica vuota dopo il riavvio** di un servizio (7/5/8 → 0/0/0). Le repliche sono in HSQLDB in memoria, ma con un `group-id` fisso il consumer riprendeva dall'offset salvato e non rileggeva lo storico | `group-id: ${spring.application.name}-${random.uuid}` + `auto-offset-reset: earliest`: ogni istanza rilegge tutto lo storico e ricostruisce la replica. Funziona anche con più istanze dello stesso servizio, perché ognuna ha il proprio DB e deve ricevere tutti gli eventi | `534b443` |
+| B3 | `start-bettermusic.sh`, `run-test-minimale.sh` | **Kafka non avviato**: i consumer riprovano a collegarsi all'infinito e album si blocca 60 s (`max.block.ms`) per ogni album | Lo start controlla che Docker sia attivo (`docker info`, altrimenti errore ed `exit 1`) e riavvia Kafka da zero (`down -v` + `up -d`), aspettando che risponda. Il test non riavvia più Kafka per conto suo e si ferma se l'avvio fallisce. Kafka viene azzerato perché i DB ripartono vuoti e gli id ripartono da 1: eventi di esecuzioni precedenti creerebbero conflitti di id | `e03db51` |
+| B4 | `connessioni-api/.../ConnessioniDomainEvent.java`, `connessioni/.../ConnessioniEventKafkaPublisher.java` | **Messaggi senza chiave**: creazione e cancellazione della stessa connessione potevano finire su partizioni diverse (4 partizioni) ed essere elaborate in ordine inverso | L'interfaccia dichiara `String getUtente()` e il publisher usa `send(channel, event.getUtente(), event)`. La chiave è l'utente e non l'id, perché una connessione ricreata ha un id nuovo. La chiave viene scelta nell'adapter Kafka, non nel dominio | `58fbaad` |
+
+**Nota pratica:** gli script avviano i jar in `*/build/libs/` senza ricompilarli. Dopo ogni pull o merge va eseguito `./gradlew build -x test`, altrimenti gira codice vecchio (è successo due volte).
+
+### Attività 2: cancellazione di una recensione
+
+| # | Cosa / Dove | Scelta e motivazione | Commit |
+| --- | --- | --- | --- |
+| C1 | `recensioni/.../domain/RecensioniService.java` + `RecensioniServiceRestBasedImpl` / `RecensioniServiceKafkaBasedImpl` | Nuovo metodo `Recensione deleteRecensione(Long id)`, implementato in modo identico nelle due versioni: cerca la recensione, la cancella dal DB, **poi** pubblica `RecensioneCancellataEvent` (stesso ordine *save → publish* di A6). Restituisce `null` se la recensione non esiste. "REST" e "Kafka" indicano solo come `createRecensione` trova l'album: i producer pubblicano sempre | `b7b1266`, `b7d4a19`, `33c9dfd` |
+| C2 | `recensioni-api/.../api/event/RecensioneCancellataEvent.java` | Evento con id, recensore, idAlbum, testo, sunto (gli stessi campi di `RecensioneCreataEvent`) | `33c9dfd` |
+| C3 | `recensioni/.../rest/RecensioniController.java` | `@DeleteMapping("/recensioni/{recensioneId}")`: 200 con la recensione cancellata, **404** se non esiste (come `getRecensione`). Nessun body: l'id è nel path, quindi `DeleteRecensioneRequest` è stato eliminato | `b7d4a19` |
+| C4 | `recensioni-api/.../RecensioniDomainEvent.java`, `recensioni/.../RecensioniEventKafkaPublisher.java` | Chiave dei messaggi = id della recensione (`send(channel, String.valueOf(event.getId()), event)`), così creazione e cancellazione della stessa recensione restano in ordine sulla stessa partizione (verificato: chiave `1`, stessa partizione) | `143221d` |
+| C5 | `recensioni-seguite/.../messagelistener/kafka/RecensioniEventKafkaListener.java`, `domain/ReplicheService.java` | Il listener gestisce anche `RecensioneCancellataEvent`, e `onRecensioneCancellata` esegue `recensioneRepository.deleteById(id)`. È idempotente: un evento ricevuto due volte non crea errori | `33c9dfd` |
+| C6 | `run-test-cancellazione-recensioni.sh` (nuovo) | Test con la stessa struttura e lo stesso output del test minimale. Gli id vengono cercati per recensore, titolo e artista, quindi il test non dipende dall'ordine di assegnazione. Verifica anche il codice HTTP della `DELETE` | `8dac732` |
+
+**Come recensioni-seguite vede la cancellazione:**
+- **REST:** nessuna modifica. Interroga recensioni a ogni richiesta, quindi l'aggiornamento è immediato, ma dipende dalla disponibilità degli altri servizi.
+- **Kafka:** `RecensioneCancellataEvent` passa per `recensioni-event-channel`, poi il listener aggiorna la replica locale. L'aggiornamento arriva con un breve ritardo (**consistenza finale**, per questo i test Kafka contengono delle `sleep`), ma recensioni-seguite risponde anche se recensioni è spento.
+
+**Conteggi attesi del test di cancellazione** (partenza: stato finale del test minimale; Alice segue Pink Floyd, The Beatles, Bruce Springsteen; Bob segue Woody e RollingStone; Carlo segue Rock, Pop e Jazz):
+
+| Passo | Recensione cancellata | Chi la segue | Alice | Bob | Carlo |
+| --- | --- | --- | --- | --- | --- |
+| prima | – | – | 7 | 5 | 8 |
+| 1 | Woody – The Dark Side of the Moon | Alice, Bob, Carlo | 6 | 4 | 7 |
+| 2 | OndaRock – Thriller | solo Carlo (Pop) | 6 | 4 | 6 |
+| 3 | RollingStone – Kind of Blue | Bob, Carlo (Jazz) | 6 | 3 | 5 |
+| 4 | Woody – The Wall | Alice, Bob (non Carlo: Progressive Rock) | 5 | 2 | 5 |
+| inesistente | di nuovo The Wall → HTTP 404 | – | 5 | 2 | 5 |
+
+### Verifiche eseguite
+- `run-test-minimale.sh rest` e `kafka`: **OK**, con gli stessi conteggi.
+- `run-test-cancellazione-recensioni.sh rest` e `kafka`: **OK**, con gli stessi conteggi.
+- Docker spento: gli script si fermano subito con un messaggio d'errore chiaro.
+- Riavvio del solo recensioni-seguite: la replica viene ricostruita (7/5/8 prima e dopo).
+- Evento con il package vecchio: viene saltato, senza loop.
+
+### Punti aperti (noti, non sistemati)
+- Possibile `NullPointerException` (risposta 500) in `RecensioniServiceKafkaBasedImpl.createRecensione` se l'album non è ancora nella replica. La versione REST si comporta allo stesso modo con un album inesistente.
+- I nomi dei topic sono stringhe ripetute nei publisher e nei listener, non costanti nei moduli `-api`.
+- **Doppia scrittura DB + Kafka:** se il salvataggio riesce ma la pubblicazione fallisce, l'evento va perso. La soluzione completa è il pattern *Transactional Outbox*.
+- **Passaggio a Postgres** (un DB per servizio):
+  - in REST non cambia nulla;
+  - in Kafka le repliche diventano persistenti, quindi il reset di Kafka e dei DB va fatto in modo coerente;
+  - conviene tornare a un `group-id` fisso;
+  - il problema della doppia scrittura diventa concreto.
