@@ -40,22 +40,6 @@ attendi_avvio_servizio() {
     echo "$1 pronto"
 }
 
-# Funzione che riavvia Kafka da zero (senza i dati di esecuzioni precedenti) e ne attende l'avvio
-riavvia_kafka() {
-    docker compose -f $KAFKA_COMPOSE down -v > /dev/null 2>&1
-    docker compose -f $KAFKA_COMPOSE up -d > /dev/null 2>&1
-    tentativi=0
-    until docker compose -f $KAFKA_COMPOSE exec -T kafka kafka-topics.sh --bootstrap-server localhost:9092 --list > /dev/null 2>&1; do
-        tentativi=$((tentativi + 1))
-        if [ "$tentativi" -ge 30 ]; then
-            echo "ERRORE: Kafka non risponde dopo 1 minuto, guarda: docker compose -f $KAFKA_COMPOSE logs kafka"
-            exit 1
-        fi
-        sleep 2
-    done
-    echo "Kafka pronto"
-}
-
 KAFKA_COMPOSE=kafka/docker/docker-compose.yml
 ATTESA_PROPAGAZIONE_EVENTI=5 # secondi
 
@@ -82,11 +66,12 @@ echo "--- Test minimale in modalità $MODE (recensioni-seguite: $IMPL, recension
 echo "Arresto dell'applicazione..."
 ./stop-bettermusic.sh > /dev/null 2>&1
 
-echo "Riavvio di Kafka (topic vuoti)..."
-riavvia_kafka
-
 echo "Avvio dell'applicazione..."
-ASW_RECENSIONISEGUITESERVICE_IMPLEMENTATION=$IMPL ASW_RECENSIONISERVICE_IMPLEMENTATION=$IMPL_RECENSIONI ./start-bettermusic.sh > app.log 2>&1
+if ! ASW_RECENSIONISEGUITESERVICE_IMPLEMENTATION=$IMPL ASW_RECENSIONISERVICE_IMPLEMENTATION=$IMPL_RECENSIONI ./start-bettermusic.sh > app.log 2>&1; then
+    echo "ERRORE: avvio dell'applicazione fallito:"
+    grep ERRORE app.log
+    exit 1
+fi
 
 echo "Attesa dell'avvio dei servizi..."
 attendi_avvio_servizio album/album
