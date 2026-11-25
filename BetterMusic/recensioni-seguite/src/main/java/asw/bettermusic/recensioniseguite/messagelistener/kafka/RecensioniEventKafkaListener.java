@@ -1,5 +1,6 @@
 package asw.bettermusic.recensioniseguite.messagelistener.kafka;
 
+import asw.bettermusic.recensioni.api.event.RecensioneCancellataEvent;
 import asw.bettermusic.recensioni.api.event.RecensioneCreataEvent;
 import asw.bettermusic.recensioni.api.event.RecensioniDomainEvent;
 import asw.bettermusic.recensioniseguite.domain.ReplicheService;
@@ -21,6 +22,9 @@ public class RecensioniEventKafkaListener {
         RecensioniDomainEvent event = record.value();
         if (event instanceof RecensioneCreataEvent e) {
             this.replicheService.onRecensioneCreata(e);
+        }
+        else if(event instanceof RecensioneCancellataEvent e) {
+            this.replicheService.onRecensioneCancellata(e);
         }
     }
 
