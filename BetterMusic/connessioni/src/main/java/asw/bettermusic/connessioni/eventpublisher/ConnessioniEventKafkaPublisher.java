@@ -17,7 +17,7 @@ public class ConnessioniEventKafkaPublisher implements ConnessioniEventPublisher
 	
 	@Override
 	public void publish(ConnessioniDomainEvent event) {
-		template.send(channel, event);
+		template.send(channel, event.getUtente(), event);
 	}
 
 }

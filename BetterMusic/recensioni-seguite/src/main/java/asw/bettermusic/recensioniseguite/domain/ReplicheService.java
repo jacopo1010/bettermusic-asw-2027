@@ -3,6 +3,7 @@ package asw.bettermusic.recensioniseguite.domain;
 import asw.bettermusic.album.api.event.AlbumCreatoEvent;
 import asw.bettermusic.connessioni.api.event.ConnessioneCancellataEvent;
 import asw.bettermusic.connessioni.api.event.ConnessioneCreataEvent;
+import asw.bettermusic.recensioni.api.event.RecensioneCancellataEvent;
 import asw.bettermusic.recensioni.api.event.RecensioneCreataEvent;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,11 @@ public class ReplicheService {
 	public void onRecensioneCreata(RecensioneCreataEvent event) {
 		Recensione recensione = new Recensione(event.getId(), event.getRecensore(), event.getIdAlbum(), event.getSunto());
 		this.recensioneRepository.save(recensione);
+	}
+
+	/* Aggiorna la replica delle recensioni (cancellazione) */
+	public void onRecensioneCancellata(RecensioneCancellataEvent event) {
+		this.recensioneRepository.deleteById(event.getId());
 	}
 
 	/* Aggiorna la replica delle connessioni (creazione/aggiornamento). */

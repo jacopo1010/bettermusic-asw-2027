@@ -2,6 +2,7 @@ package asw.bettermusic.recensioni.domain;
 
 import org.springframework.stereotype.Service;
 
+import asw.bettermusic.recensioni.api.event.RecensioneCancellataEvent;
 import asw.bettermusic.recensioni.api.event.RecensioneCreataEvent;
 import asw.bettermusic.recensioni.api.event.RecensioniDomainEvent;
 
@@ -55,6 +56,24 @@ public class RecensioniServiceRestBasedImpl implements RecensioniService {
 	public Collection<Recensione> getRecensioniByRecensore(String recensore) {
 		Collection<Recensione> recensioni = recensioniRepository.findByRecensore(recensore);
 		return recensioni;
+	}
+
+	/* Cancella una recensione, dato l'id */
+	public Recensione deleteRecensione(Long id) {
+		Recensione recensione = getRecensione(id);
+		if(recensione!=null) {
+			recensioniRepository.delete(recensione);
+			/* evento di cancellazione della recensione */
+			RecensioniDomainEvent event = new RecensioneCancellataEvent(
+				recensione.getId(), 
+				recensione.getRecensore(), 
+				recensione.getIdAlbum(), 
+				recensione.getTesto(), 
+				recensione.getSunto()
+			);
+			this.recensioniEventPublisher.publish(event);
+		}
+		return recensione;
 	}
 
 }
