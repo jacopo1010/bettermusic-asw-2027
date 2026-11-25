@@ -17,7 +17,7 @@ public class RecensioniEventKafkaPublisher implements RecensioniEventPublisher{
 
 	@Override
 	public void publish(RecensioniDomainEvent event) {
-		 template.send(channel,event);
+		 template.send(channel, String.valueOf(event.getId()), event);
 	}
 	
 	
